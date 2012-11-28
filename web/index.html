@@ -1,0 +1,63 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta http-equiv="Charset" content="utf-8" />
+		<link rel="stylesheet" type="text/css" media="all" href="css/style.css" />
+        <title>AroundME</title>
+		<script type="text/javascript" src="js/jquery.js"></script>
+		<script src="//connect.facebook.net/en_US/all.js"></script>
+		<script type="text/javascript" src="js/layout.js"></script>
+		<script type="text/javascript" src="https://maps.google.com/maps/api/js?sensor=true"></script>
+		<script type="text/javascript" src="js/gm.js"></script> 
+		<script type="text/javascript" src="js/fb.js"></script>
+		
+		<script>
+			window.onload = function() {
+				initializeGM();
+				initializeFB();
+				fillComboBox();
+			}
+		</script>
+    </head>
+    <body>
+		<div id="fb-root"></div>
+		<div id="shadowing"></div>
+		<div id="box">
+			<div id="evtCover"></div>
+			<div id="evtDesc"></div>
+			<div id="evtDesc"></div>
+		</div>
+			
+		<div id="body">
+			<div id="top">
+				<center><h1>AroundME</h1></center>
+				<div id="fb">
+					<fb:login-button perms='user_events' autologoutlink='true'></fb:login-button>
+				</div>
+			</div>
+			<div id="menu">
+				<div id="nav-abas">
+					<ul>
+						<li value="1" id="listevents" onmouseover="showMenuTab(this)" onmouseout="hideMenuTab(this)"></li>
+						<li value="2" id="settings" onmouseover="showMenuTab(this)" onmouseout="hideMenuTab(this)" ></li>
+					</ul>
+				</div>
+				<div id="aba1" class="abas">
+					<div class="closebutton"></div>
+					<h1> List Events </h1>
+					<select onchange="listEvents(this);" name="selectPlace"><option value="-1"></option></select>
+					<div id="listofevents"></div>
+				</div>
+				<div id="aba2" class="abas"> 
+					<div class="closebutton"></div>
+					Show user events 
+					<input type="checkbox" checked="true" onchange="hideShowUserEvents(this)" />
+				</div>
+			</div>
+			
+			<div id="map"></div>
+			
+		</div>
+    </body>
+</html>
