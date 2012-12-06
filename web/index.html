@@ -12,11 +12,11 @@
 		<script type="text/javascript" src="js/gm.js"></script> 
 		<script type="text/javascript" src="js/fb.js"></script>
 		
+		
 		<script>
 			window.onload = function() {
 				initializeGM();
 				initializeFB();
-				fillComboBox();
 			}
 		</script>
     </head>
@@ -24,16 +24,29 @@
 		<div id="fb-root"></div>
 		<div id="shadowing"></div>
 		<div id="box">
+			<div onclick="closebox()" id="evtClose"></div>
+			<div id="evtTitle"></div>
 			<div id="evtCover"></div>
 			<div id="evtDesc"></div>
-			<div id="evtDesc"></div>
+			<div id="evtPart"></div>
+			<div id="evtButtons">
+				<div id="fbButtons">
+					<div id="evtGoing" onclick="participateEvent(1);"></div>
+					<div id="evtMaybe" onclick="participateEvent(2);"></div>
+					<div id="evtNGoing" onclick="participateEvent(3);"></div>
+				</div>
+				<div id="evtPage"><a target="_blank"></a></div>
+				<div id="evtTrace"></div>
+			</div>
+			<input id="evtID" type="hidden" /> 
 		</div>
 			
 		<div id="body">
 			<div id="top">
 				<center><h1>AroundME</h1></center>
 				<div id="fb">
-					<fb:login-button perms='user_events' autologoutlink='true'></fb:login-button>
+					<fb:login-button perms='user_events, rsvp_event, user_interests, read_friendlists, read_page_mailboxes' autologoutlink='true'></fb:login-button>
+					<!-- <div onclick="fbLogin();">ASUDHYAUSHFUAS</div> -->
 				</div>
 			</div>
 			<div id="menu">
@@ -45,8 +58,7 @@
 				</div>
 				<div id="aba1" class="abas">
 					<div class="closebutton"></div>
-					<h1> List Events </h1>
-					<select onchange="listEvents(this);" name="selectPlace"><option value="-1"></option></select>
+					<select style="display: block; margin: 10px auto;" onchange="listEvents(this);" name="selectPlace"><option value="-2"></option></select>
 					<div id="listofevents"></div>
 				</div>
 				<div id="aba2" class="abas"> 

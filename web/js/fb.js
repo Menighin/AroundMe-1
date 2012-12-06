@@ -2,16 +2,32 @@
 	Script que controla o facebook
 */
 
+function fbLogin() {
+	FB.login(function(response) {
+	   if (response.authResponse) {
+		 console.log('Welcome!  Fetching your information.... ');
+		 FB.api('/me', function(response) {
+		   console.log('Good to see you, ' + response.name + '.');
+		 });
+	   } else {
+		 console.log('User cancelled login or did not fully authorize.');
+	   }
+	 });
+ }
+
 var accessToken = null;
+var userID = null;
 
 //var appAccessToken = '360645504021378|AX7rwsNnl0VBUwDGVUxb5p0Vwfc';   //App AroundME
-var appAccessToken = '462700473780045|CoNNZdtH11hwDxK7D6DbPL2msHo';
+//var appAccessToken = '462700473780045|CoNNZdtH11hwDxK7D6DbPL2msHo'; //TestApp
+var appAccessToken = '395956050472783|mzEeKmgXugIxeAYJfVrwGGLfBOc';
 function initializeFB() {
 	// init the FB JS SDK
 	var actoken;
 	FB.init({
 	  //appId		 : '360645504021378', // App AroundME
-	  appId      : '462700473780045',
+	  //appId      : '462700473780045', //TestApp
+	  appId		 : '395956050472783', //TestApp2
 	  channeUrl  : 'http://localhost', //App AroundME
 	  status     : true, // check the login status upon init?
 	  cookie     : true, // set sessions cookies to allow your server to access the session?
@@ -20,15 +36,14 @@ function initializeFB() {
 
 	FB.getLoginStatus(function (response) {
 		if (response.authResponse) {
+			userID = response.authResponse.userID;
 			accessToken = response.authResponse.accessToken;
-			console.log ("Token: " + accessToken);
-			for (var i = 0; i < pointInterestName.length; i++)
-				findInterestsMarks(i);
+			console.log(accessToken);
+			fillInterestsName(1);
 			catchOwnEvents();
 		} else {
 			accessToken = appAccessToken;
-			for (var i = 0; i < pointInterestName.length; i++)
-				findInterestsMarks(i);
+			fillInterestsName(0);
 		}
 	});
 	
@@ -67,32 +82,54 @@ function openAjax() {
     return ajax;
 }
 
-/*
-	Função que localiza e marca os pontos de interesse
-*/
-function findInterestsMarks (i) {
+function fillInterestsName(logged) {
+	if (logged == 1) $("#aba1 select").append ("<option value = " + -1 + ">User events</option>");
 	var ajax = openAjax();
-	ajax.open ("GET", "https://graph.facebook.com/" + pointInterestName[i] + "?access_token=" + accessToken, true);
+	ajax.open ("GET", "http://around-me.herokuapp.com/landmarks.json", true);
 	ajax.onreadystatechange = function () {
 		if (ajax.readyState == 4 && ajax.status == 200) {
-			var interesting = JSON.parse(ajax.responseText);
-			var marker = new google.maps.Marker ({
-				position: new google.maps.LatLng (interesting.location.latitude, interesting.location.longitude),
-				map: map,
-				title: interesting.name,
-				icon: "img/places.png"
-			});
-			pointInterestMarker[i] = marker;
-			findInterestsEvents(i);
+			var names = JSON.parse(ajax.responseText);
+			for (var i = 0; i < names.length; i++) {
+				$("#aba1 select").append ("<option value = " + i + ">" + names[i].name + "</option>")
+				pointInterestName[i] = names[i].username.toLowerCase();
+				
+			}
+			for (var i = 0; i < pointInterestName.length; i++)
+				findInterestsMarks(i);
 		}
 	}
 	ajax.send(null);
 }
 
 /*
+	Função que localiza e marca os pontos de interesse
+*/
+function findInterestsMarks (i) {
+	var ajax = openAjax();
+	ajax.open ("GET", "http://around-me.herokuapp.com/landmarks/" + pointInterestName[i] + ".json", true);
+	ajax.onreadystatechange = function () {
+		if (ajax.readyState == 4 && ajax.status == 200) {
+			var interesting = JSON.parse(ajax.responseText);
+			var marker = new google.maps.Marker ({
+				position: new google.maps.LatLng (interesting.location_latitude, interesting.location_longitude),
+				map: map,
+				title: interesting.name,
+				icon: "img/places.png"
+			});
+			pointInterestMarker[i] = marker;
+			findInterestsEvents(i, interesting.location_latitude, interesting.location_longitude);
+		}
+	}
+	ajax.send(null);
+}
+function toTitleCase(str)
+{
+    return str.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+}
+/*
 	Função que localiza e cria as infoWindows com a lista de eventos nos pontos de interesse
 */
-function findInterestsEvents (i) {
+function findInterestsEvents (i, lat, lng) {
 	var date = new Date();
 	var today = "";
 	today += date.getFullYear();
@@ -105,19 +142,21 @@ function findInterestsEvents (i) {
 	else
 		today += '-0' + date.getDate();
 	today+="T00:01:00+0100";
-	
 	var ajax = openAjax();
-	ajax.open ("GET", "https://graph.facebook.com/" + pointInterestName[i] + "/events?access_token=" + accessToken, true);
-	console.log("https://graph.facebook.com/" + pointInterestName[i] + "/events?access_token=" + accessToken);
+	ajax.open ("GET", "http://around-me.herokuapp.com/landmarks/" + pointInterestName[i] + "/events", true);
 	ajax.onreadystatechange = function () {
 		if (ajax.readyState == 4 && ajax.status == 200) {
-			var events = (JSON.parse(ajax.responseText)).data;
-			var eventList = '<ul style="list-style-type:circle;">';
+			var events = (JSON.parse(ajax.responseText));
+			var eventList = '<ul>';
 			for (var j = events.length - 1; j >= 0; j--) {
-				if (events[j].start_time >= today)
-					eventList += '<li><a href="#" onClick="openbox(\'Title of the Form\', 1)">' + events[j].name + '</a> - ' +
-					events[j].start_time.substring(0,10) + '</li>';
+				if (events[j].start_time >= today) {
+					var evtName = toTitleCase(events[j].name);
+					if (evtName.length > 40) evtName = evtName.substring(0, 40) + '...';
+					var evtDate = events[j].start_time.substring(0,10);
+					eventList += '<li class="listevent" onClick="openbox(' + events[j].fb_id + ', \'' + evtName + '\',' + lat + ',' + lng + ')"><a>' + evtName + '</a>' +
+					'<span>' + evtDate.substring(8,10) + '/' + evtDate.substring(5,7) + '/' + evtDate.substring(0,4) + '</span></li>';
 				}
+			}
 			eventList += '</ul>';
 			
 			var infoWindow = new google.maps.InfoWindow ({
@@ -191,32 +230,31 @@ function markOwnEvents (id, event, i) {
 				title: event.name,
 				icon: "img/ownevents.png"
 			});
-			//console.log(i);
+
+			if (hasAlreadyRed(place.location.latitude, place.location.longitude))
+				marker.setMap(null)
 			ownEventMarker[i] = marker;
-			infoOwnEvents(i, event);
+			infoOwnEvents(i, event, place.location.latitude, place.location.longitude);
 		}
 	}
 	ajax.send(null);	
 }
 
-function  infoOwnEvents (i, event) {
-	var description, time;
-	if (event.description.length > 400) description = event.description.substring(0,400) + '<a target="_blank" href ="http://www.facebook.com/' + 
-		event.id + '">...ver mais</a><br />';
-	else description = event.description + '<br/><a target="_blank" href ="http://www.facebook.com/' + 
-		event.id + '">...ver mais</a><br />';
-	time = event.start_time.substring(8, 10) + '/' + event.start_time.substring(5, 7) + '/' + event.start_time.substring(0, 4) + 
-		' - ' + event.start_time.substring(11, 16);
-	var content = "<strong>" + event.name + "</strong><br /><i>" + time + "</i><br />" + description;
+function hasAlreadyRed (lat, lng) {
+	for (var i = 0; i < pointInterestMarker.length; i++) {
+		var diffLat = Math.abs(pointInterestMarker[i].getPosition().lat() - lat);
+		var diffLng = Math.abs(pointInterestMarker[i].getPosition().lng() - lng);
+		if (diffLat < 0.00001 && diffLng < 0.00001) {
+			return true;
+		}
+	}
+	return false;
+}
 
-	var infoWindow = new google.maps.InfoWindow ({
-		content: content
-	});
-	
-	ownEventInfoWindow[i] = infoWindow;
-	
+function  infoOwnEvents (i, event, lat, lng) {
 	google.maps.event.addListener (ownEventMarker[i], 'click', function () { 
-		ownEventInfoWindow[i].open(map, ownEventMarker[i]); 
+		var evtName = toTitleCase(event.name);
+		openbox(event.id, evtName, lat, lng);
 	});
 }
 
@@ -236,7 +274,8 @@ function hideShowUserEvents (check) {
 /*
 * Listando eventos
 */
-function fillComboBox() {
+function fillComboBox(logged) {
+	if (logged == 1) $("#aba1 select").append ("<option value = " + -1 + ">User events</option>");
 	for (var i = 0; i < pointInterestName.length; i++)
 		$("#aba1 select").append ("<option value = " + i + ">" + pointInterestName[i] + "</option>");
 }
@@ -254,24 +293,67 @@ function listEvents (select) {
 	else
 		today += '-0' + date.getDate();
 	today+="T00:01:00+0100";
-
+	
+	var events = [];
 	var i = select.value;
-	if (i != -1) {
+	if (i >= 0) {
 		var ajax = openAjax();
 		ajax.open ("GET", "https://graph.facebook.com/" + pointInterestName[i] + "/events?access_token=" + accessToken, true);
 		ajax.onreadystatechange = function () {
 			if (ajax.readyState == 4 && ajax.status == 200) {
 				var events = (JSON.parse(ajax.responseText)).data;
-				var eventList = '<ul style="list-style-type:circle;">';
+				var eventList = '<div id="listWrapper"><div id="list"><ul style="list-style-type:circle;">';
 				for (var j = events.length - 1; j >= 0; j--) {
-					if (events[j].start_time >= today)
-						eventList += '<li><a target="_blank" href=http://www.facebook.com/' + events[j].id + '>' + events[j].name + '</a> - ' +
-						events[j].start_time.substring(0,10) + '</li>';
+					if (events[j].start_time >= today) {
+						var evtName = toTitleCase(events[j].name);
+						if (evtName.length > 30) evtName = evtName.substring(0, 30) + '...';
+						eventList += '<li class="listevent" onClick="openbox(' + events[j].id + ', \'' + evtName + '\')"><a>' + evtName + '</a>' +
+							'<span>' + events[j].start_time.substring(8,10) + '/' + events[j].start_time.substring(5,7) + '/' + 
+							events[j].start_time.substring(0,4) + '</span></li>';
+					}
 				}
-				eventList += '</ul>';
-				
+				eventList += '</ul></div></div>';
 				document.getElementById('listofevents').innerHTML = eventList;
 				
+			}
+		}
+		ajax.send(null);
+	} else if (i == -1) {
+		var ajax = openAjax();
+		ajax.open ("GET", "https://graph.facebook.com/me/events?access_token=" + accessToken, false);
+		ajax.onreadystatechange = function () {
+			if (ajax.readyState == 4 && ajax.status == 200) {
+				events[0] = JSON.parse (ajax.responseText);
+				
+				var eventList = '<div id="listWrapper"><div id="list"><h3>Replied:</h3><ul style="list-style-type:circle;">';
+				for (var i = events[0].data.length - 1; i >= 0; i--) {
+					var evtName = toTitleCase(events[0].data[i].name);
+					if (evtName.length > 30) evtName = evtName.substring(0, 30) + '...';
+					eventList += '<li class="listevent" onClick="openbox(' + events[0].data[i].id + ', \'' + evtName + '\')"><a style="color: #00a">' + evtName + '</a>' +
+								 '<span>' + events[0].data[i].start_time.substring(8,10) + '/' + events[0].data[i].start_time.substring(5,7) + '/' + 
+								  events[0].data[i].start_time.substring(0,4) + '</span></li>';
+				}
+				eventList += '</ul><br />';
+				
+				
+				ajax.open("GET", "https://graph.facebook.com/me/events/not_replied?access_token=" + accessToken, true);
+				ajax.onreadystatechange = function () {
+					if (ajax.readyState == 4 && ajax.status == 200) {
+						events[1] = JSON.parse(ajax.responseText);
+						eventList += '<h3>Not replied:</h3><ul style="list-style-type:circle;">';
+						for (var i = events[1].data.length - 1; i >= 0; i--) {
+							var evtName = toTitleCase(events[1].data[i].name);
+							if (evtName.length > 30) evtName = evtName.substring(0, 30) + '...';
+							eventList += '<li class="listevent" onClick="openbox(' + events[1].data[i].id + ', \'' + evtName + '\')"><a style="color: #00a">' + evtName + '</a>' +
+								 '<span>' + events[1].data[i].start_time.substring(8,10) + '/' + events[1].data[i].start_time.substring(5,7) + '/' + 
+								  events[1].data[i].start_time.substring(0,4) + '</span></li>';
+						}
+						eventList += '</ul></div></div>';
+				
+						document.getElementById('listofevents').innerHTML = eventList;
+					}
+				}
+				ajax.send(null);
 			}
 		}
 		ajax.send(null);
@@ -279,4 +361,53 @@ function listEvents (select) {
 		document.getElementById('listofevents').innerHTML = "";
 	}
 	
+}
+
+/*
+* Events handler
+*/
+function participateEvent (going) {
+	if (going == 1) {
+		$.ajax({
+			url: "https://graph.facebook.com/" + $("#evtID")[0].value + "/attending",
+			type: "POST",
+			data: {
+				access_token: accessToken,
+			}
+		}).done (function (msg) {
+			if (msg == "true") {
+				$("#evtGoing")[0].style.display = "none";
+				$("#evtMaybe")[0].style.display = "block";
+				$("#evtNGoing")[0].style.display = "block";
+			}
+		});
+	} else if (going == 2) {
+		$.ajax({
+			url: "https://graph.facebook.com/" + $("#evtID")[0].value + "/attending",
+			type: "POST",
+			data: {
+				access_token: accessToken,
+			}
+		}).done (function (msg) {
+			if (msg == "true") {
+				$("#evtGoing")[0].style.display = "block";
+				$("#evtMaybe")[0].style.display = "none";
+				$("#evtNGoing")[0].style.display = "block";
+			}
+		});
+	} else if (going == 3) {
+		$.ajax({
+			url: "https://graph.facebook.com/" + $("#evtID")[0].value + "/declined",
+			type: "POST",
+			data: {
+				access_token: accessToken,
+			}
+		}).done (function (msg) {
+			if (msg == "true") {
+				$("#evtGoing")[0].style.display = "block";
+				$("#evtMaybe")[0].style.display = "block";
+				$("#evtNGoing")[0].style.display = "none";
+			}
+		});
+	}
 }
