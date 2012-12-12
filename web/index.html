@@ -22,13 +22,34 @@
     </head>
     <body>
 		<div id="fb-root"></div>
+		<script>
+			(function(d, s, id) {
+				var js, fjs = d.getElementsByTagName(s)[0];
+				if (d.getElementById(id)) return;
+				js = d.createElement(s); js.id = id;
+				js.src = "//connect.facebook.net/pt_BR/all.js#xfbml=1&appId=462700473780045";
+				fjs.parentNode.insertBefore(js, fjs);
+			}(document, 'script', 'facebook-jssdk'));
+		</script>
+		
 		<div id="shadowing"></div>
+		<div id="shadowingmore"></div>
+		<div id="inviteBox">
+			<div onclick="closeInviteBox()" id="inviteClose"></div>
+			<p style="font-family: sans-serif; font-size:12px">Type a friend name <input type="text" size="30" onkeyup="dynamicSearch(this.value)" /></p>
+			<div id="liveSearchWrapper"><ul id="liveSearch"><span style="color: #aaa; font-family: sans-serif; font-size: 12px">Type more 3 characters...</span></ul></div>
+			<div id="toInviteWrapper">
+				<h3>Will invite</h3>
+				<ul id="toInvite"></ul>
+				<div id="btnInviteList"></div>
+			</div>
+		</div>
 		<div id="box">
 			<div onclick="closebox()" id="evtClose"></div>
 			<div id="evtTitle"></div>
 			<div id="evtCover"></div>
 			<div id="evtDesc"></div>
-			<div id="evtPart"></div>
+			<div id="evtPart"><h3>Attending ()</h3><ul id="partList"></ul><img style="display: block; margin: 0 auto;" src="img/loading.gif" /></div>
 			<div id="evtButtons">
 				<div id="fbButtons">
 					<div id="evtGoing" onclick="participateEvent(1);"></div>
@@ -37,15 +58,16 @@
 				</div>
 				<div id="evtPage"><a target="_blank"></a></div>
 				<div id="evtTrace"></div>
+				<div id="evtInvite"></div>
 			</div>
 			<input id="evtID" type="hidden" /> 
 		</div>
-			
+		
 		<div id="body">
 			<div id="top">
 				<center><h1>AroundME</h1></center>
 				<div id="fb">
-					<fb:login-button perms='user_events, rsvp_event, user_interests, read_friendlists, read_page_mailboxes' autologoutlink='true'></fb:login-button>
+					<fb:login-button perms='user_events, rsvp_event, user_interests, read_friendlists, read_page_mailboxes, friends_events, create_event' autologoutlink='true'></fb:login-button>
 					<!-- <div onclick="fbLogin();">ASUDHYAUSHFUAS</div> -->
 				</div>
 			</div>
@@ -64,10 +86,21 @@
 				<div id="aba2" class="abas"> 
 					<div class="closebutton"></div>
 					Show user events 
-					<input type="checkbox" checked="true" onchange="hideShowUserEvents(this)" />
+					<input type="checkbox" checked="true" onchange="hideShowUserEvents(this)" /><br />
+					Show markers within <input value= "0" onkeyup="checkRadius(this.value)" type="text" id="radius" /> km <br />
+					Trace routes options
+					<form>
+						<input type="radio" name="route" id="routeDriving" value="1" checked="checked" onclick="updateTrajetoria(this.value);">Driving<br />
+						<input type="radio" name="route" id="routeWalking" value="2" onclick="updateTrajetoria(this.value);">Walking
+					</form>					
+					<p>Informações de Percurso:</p>
+					<div id="aba2route"></div>
+				</div>
+				<div id="aba3" class="abas">
+					<div class="closebutton"></div>
+					
 				</div>
 			</div>
-			
 			<div id="map"></div>
 			
 		</div>

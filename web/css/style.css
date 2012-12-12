@@ -7,6 +7,12 @@ html, body, #body {
 	height: 100%;
 }
 
+a {
+	text-decoration: none;
+	font-family: sans-serif;
+	color: black;
+}
+
 #body {
 	min-height: 100%;
 }
@@ -87,7 +93,7 @@ html, body, #body {
 	cursor: pointer;
 }
 
-#shadowing {
+#shadowing, #shadowingmore {
 	display: none;
 	position: fixed;
 	top: 0%;
@@ -99,6 +105,11 @@ html, body, #body {
 	opacity:0.1;
 	filter: alpha(opacity=50);
 }
+
+#shadowingmore {
+	z-index: 115;
+}
+
 #box {
 	display: none;
 	position: fixed;
@@ -149,6 +160,14 @@ html, body, #body {
 	border-right: 1px black solid;
 	margin: 0 auto;
 }
+
+#evtCoverImg {
+	width: 200px;
+	height: 300px;
+	overflow: hidden;
+	margin-bottom: 3px;
+}
+
 #evtWhen {
 	width: 200px;
 	height: 20px;
@@ -221,7 +240,7 @@ html, body, #body {
 	margin: 0 auto;
 }
 
-#evtGoing, #evtNGoing , #evtMaybe {
+#evtGoing, #evtNGoing , #evtMaybe, #btnInviteList {
 	width: 94px;
 	height: 23px;
 	cursor: pointer;
@@ -247,6 +266,14 @@ html, body, #body {
 }
 #evtNGoing:hover {
 	background: url("../img/notgoingover.png");
+}
+#btnInviteList {
+	display: block;
+	float: right;
+	background: url("../img/invitelist.png");
+}
+#btnInviteList:hover {
+	background: url("../img/invitelistover.png");
 }
 #evtPage, #evtPage a {
 	display: block;
@@ -276,6 +303,20 @@ html, body, #body {
 	background: url("../img/tracerouteover.png")
 }
 
+#evtInvite {
+	display: none;
+	width: 71px;
+	height: 27px;
+	position: absolute;
+	right: 155px;
+	bottom: 0px;
+	cursor: pointer;
+	background: url("../img/invitefriends.png");
+}
+
+#evtInvite:hover {
+	background: url("../img/invitefriendsover.png")
+}
 
 .listevent {
 	list-style: none;
@@ -318,4 +359,104 @@ html, body, #body {
 }
 #list {
 	width: 390px;
+}
+
+#inviteBox {
+	display: none;
+	position: fixed;
+	top: 25%;
+	left: 35%;
+	width: 400px;
+	height: 300px;
+	padding: 15px;
+	margin:0;
+	background-color: white;
+	z-index:120;
+	overflow: auto;
+	box-shadow: 0px 0px 10px #888888;
+}
+#inviteBox h3{
+	font-family: sans-serif;
+	font-size: 14px;
+}
+#inviteClose {
+	width: 50px;
+	height:20px;
+	background-image: url("../img/closebutton.png");
+	position: relative;
+	left: 360px;
+	top: -15px;
+}
+#inviteClose:hover {
+	background-image: url("../img/closebutton_pressed.png");
+	cursor: pointer;
+}
+#toInviteWrapper {
+	margin-top: 10px;
+}
+#liveSearchWrapper {
+	margin-top: 5px;
+}
+#toInvite, #liveSearch {
+	height: 100px;
+	padding: 10px;
+	border: 1px #ddd solid;
+	overflow: auto;
+	list-style: none;
+}
+#toInvite {
+	height: 50px;
+}
+
+.friendsList .aName {
+	font-size: 12px;
+	position: relative;
+	top: -14px;
+	left: 10px;
+	color: #008;
+}
+.friendsList .aName:hover {
+	color: #66d;
+}
+
+.friendsList:hover {
+	background-color: #eef;
+}
+
+.inviteIcon {
+	display: inline;
+	float: right;
+	font-size: 24px;
+	font-weight: bold;
+	color: #ccf;
+	position: relative;
+	cursor: pointer;
+	top: 8px;
+	right: 20px;
+}
+.inviteIcon:hover {
+	color: #008;
+}
+.toInviteFriend {
+	float: left;
+	font-size: 10px;
+	font-family: sans-serif;
+	padding: 3px 5px;
+	margin: 3px;
+	background-color: #ddf;
+}
+
+.toInviteFriend a {
+	cursor: pointer;
+	position: relative;
+	margin-left: 5px;
+	float: right;
+	font-size: 12px;
+	color: #aac;
+}
+.toInviteFriend a:hover {
+	color: #008;
+}
+#like {
+	background-color: white;
 }
